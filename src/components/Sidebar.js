@@ -1,17 +1,14 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
-
-/**
- * Sidebar - Barra Lateral
- * Navegación por clientes/fábricas
- */
-const clients = [
-  { id: 'amphenol', name: 'Amphenol' },
-  { id: 'magnetics', name: 'Magnetics' },
-  { id: 'ichor', name: 'Ichor' },
-];
+import { useRevisions } from '../context/RevisionsContext';
 
 function Sidebar() {
+  const { clients, fetchClients } = useRevisions();
+
+  useEffect(() => {
+    fetchClients();
+  }, [fetchClients]);
+
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
@@ -23,7 +20,7 @@ function Sidebar() {
           {clients.map((client) => (
             <li key={client.id} className="client-item">
               <NavLink
-                to={`/cliente/${client.id}`}
+                to={`/cliente/${client.slug}`}
                 className={({ isActive }) =>
                   isActive ? 'client-link active' : 'client-link'
                 }

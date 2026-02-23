@@ -1,12 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRevisions } from '../context/RevisionsContext';
 import RevisionsTable from './RevisionsTable';
 import NewEntryForm from './NewEntryForm';
 import PieceDetailModal from './PieceDetailModal';
 
-/**
- * Dashboard - Panel Principal
- */
 function Dashboard() {
+  const { fetchRevisions } = useRevisions();
   const [showNewEntryForm, setShowNewEntryForm] = useState(false);
   const [selectedPiece, setSelectedPiece] = useState(null);
   const [sortConfig, setSortConfig] = useState({
@@ -14,11 +13,20 @@ function Dashboard() {
     direction: 'desc'
   });
 
+  useEffect(() => {
+    fetchRevisions();
+  }, [fetchRevisions]);
+
   const handleSortChange = (field) => {
     setSortConfig(prev => ({
       field,
       direction: prev.field === field && prev.direction === 'asc' ? 'desc' : 'asc'
     }));
+  };
+
+  const handleNewEntryClose = () => {
+    setShowNewEntryForm(false);
+    fetchRevisions();
   };
 
   return (
@@ -49,8 +57,14 @@ function Dashboard() {
         <RevisionsTable sortConfig={sortConfig} onPieceSelect={setSelectedPiece} />
       </div>
 
-      {showNewEntryForm && <NewEntryForm onClose={() => setShowNewEntryForm(false)} />}
-      {selectedPiece && <PieceDetailModal piece={selectedPiece} onClose={() => setSelectedPiece(null)} />}
+      {showNewEntryForm && <NewEntryForm onClose={handleNewEntryClose} />}
+      {selectedPiece && (
+        <PieceDetailModal
+          piece={selectedPiece}
+          onClose={() => setSelectedPiece(null)}
+          onInspectionSaved={fetchRevisions}
+        />
+      )}
     </div>
   );
 }

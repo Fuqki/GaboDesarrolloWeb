@@ -1,22 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRevisions } from '../context/RevisionsContext';
 
-/**
- * NewEntryForm - Formulario de Nueva Entrada
- */
 function NewEntryForm({ onClose }) {
+  const { addRevision, fetchClients, clients } = useRevisions();
   const [formData, setFormData] = useState({
     numeroPieza: '',
     plano: '',
-    fabrica: '',
+    client_id: '',
     numOperaciones: '',
     operadores: '',
     fechaRevision: '',
     fechaSalida: ''
   });
+  const [planoArchivo, setPlanoArchivo] = useState(null);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const factories = ['Amphenol', 'Magnetics', 'Ichor'];
+  useEffect(() => {
+    fetchClients();
+  }, [fetchClients]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -26,11 +28,18 @@ function NewEntryForm({ onClose }) {
     }
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setPlanoArchivo(file);
+    }
+  };
+
   const validateForm = () => {
     const newErrors = {};
     if (!formData.numeroPieza.trim()) newErrors.numeroPieza = 'El número de pieza es requerido';
     if (!formData.plano.trim()) newErrors.plano = 'El plano es requerido';
-    if (!formData.fabrica) newErrors.fabrica = 'Selecciona una fábrica';
+    if (!formData.client_id) newErrors.client_id = 'Selecciona una fábrica';
     if (!formData.numOperaciones || parseInt(formData.numOperaciones) < 1) {
       newErrors.numOperaciones = 'Ingresa un número válido de operaciones';
     }
@@ -40,15 +49,29 @@ function NewEntryForm({ onClose }) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
     setIsSubmitting(true);
-    console.log('Datos a enviar:', formData);
-    setTimeout(() => {
-      setIsSubmitting(false);
+
+    try {
+      const data = new FormData();
+      data.append('numero_pieza', formData.numeroPieza);
+      data.append('plano', formData.plano);
+      data.append('client_id', formData.client_id);
+      data.append('num_operaciones', formData.numOperaciones);
+      data.append('operadores', formData.operadores);
+      data.append('fecha_revision', formData.fechaRevision);
+      if (formData.fechaSalida) data.append('fecha_salida', formData.fechaSalida);
+      if (planoArchivo) data.append('plano_archivo', planoArchivo);
+
+      await addRevision(data);
       onClose();
-    }, 1000);
+    } catch (err) {
+      setErrors(prev => ({ ...prev, submit: err.message }));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -67,18 +90,24 @@ function NewEntryForm({ onClose }) {
           </div>
 
           <div className="form-group">
-            <label htmlFor="plano">Plano *</label>
+            <label htmlFor="plano">Plano (Identificador) *</label>
             <input type="text" id="plano" name="plano" value={formData.plano} onChange={handleChange} placeholder="Ej: PLN-2024-001" disabled={isSubmitting} />
             {errors.plano && <span className="field-error">{errors.plano}</span>}
           </div>
 
           <div className="form-group">
-            <label htmlFor="fabrica">Fábrica *</label>
-            <select id="fabrica" name="fabrica" value={formData.fabrica} onChange={handleChange} disabled={isSubmitting}>
+            <label htmlFor="planoArchivo">Archivo del Plano (PDF o Imagen)</label>
+            <input type="file" id="planoArchivo" accept=".pdf,image/*" onChange={handleFileChange} disabled={isSubmitting} />
+            {planoArchivo && <span className="field-hint">Archivo: {planoArchivo.name}</span>}
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="client_id">Fábrica *</label>
+            <select id="client_id" name="client_id" value={formData.client_id} onChange={handleChange} disabled={isSubmitting}>
               <option value="">Selecciona una fábrica</option>
-              {factories.map(f => <option key={f} value={f}>{f}</option>)}
+              {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
-            {errors.fabrica && <span className="field-error">{errors.fabrica}</span>}
+            {errors.client_id && <span className="field-error">{errors.client_id}</span>}
           </div>
 
           <div className="form-group">

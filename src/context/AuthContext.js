@@ -1,68 +1,58 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
+import { loginAPI, logoutAPI, getProfile } from '../services/api';
 
 const AuthContext = createContext(null);
-
-// Usuario de prueba
-const TEST_USER = {
-  employeeNumber: '0001',
-  password: 'Constraseña123',
-  name: 'Usuario de Calidad',
-  department: 'Calidad'
-};
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Función de login con validación básica
-  const login = (employeeNumber, password) => {
-    // Validar que los campos no estén vacíos
+  useEffect(() => {
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      getProfile()
+        .then((profile) => {
+          setUser(profile);
+          setIsAuthenticated(true);
+        })
+        .catch(() => {
+          localStorage.removeItem('auth_token');
+        })
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
+    }
+  }, []);
+
+  const login = async (employeeNumber, password) => {
     if (!employeeNumber || !employeeNumber.trim()) {
       return { success: false, error: 'El número de empleado es requerido' };
     }
-
     if (!password || !password.trim()) {
       return { success: false, error: 'La contraseña es requerida' };
     }
-
-    // Validar que el número de empleado sea numérico
     if (!/^\d+$/.test(employeeNumber)) {
       return { success: false, error: 'El número de empleado debe ser numérico' };
     }
 
-    // Validar credenciales contra el usuario de prueba
-    if (employeeNumber !== TEST_USER.employeeNumber) {
-      return { success: false, error: 'Número de empleado incorrecto' };
+    try {
+      const data = await loginAPI(employeeNumber, password);
+      setUser(data.user);
+      setIsAuthenticated(true);
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: err.message };
     }
-
-    if (password !== TEST_USER.password) {
-      return { success: false, error: 'Contraseña incorrecta' };
-    }
-
-    // Login exitoso
-    setUser({
-      employeeNumber: TEST_USER.employeeNumber,
-      name: TEST_USER.name,
-      photo: null,
-      department: TEST_USER.department
-    });
-    setIsAuthenticated(true);
-    
-    return { success: true };
   };
 
-  // Función de logout
   const logout = () => {
+    logoutAPI();
     setUser(null);
     setIsAuthenticated(false);
   };
 
-  const value = {
-    user,
-    isAuthenticated,
-    login,
-    logout
-  };
+  const value = { user, isAuthenticated, loading, login, logout };
 
   return (
     <AuthContext.Provider value={value}>
@@ -71,7 +61,6 @@ export function AuthProvider({ children }) {
   );
 }
 
-// Hook personalizado para usar el contexto de autenticación
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {

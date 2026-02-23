@@ -2,17 +2,14 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-/**
- * Login - Módulo de Autenticación
- * Credenciales: ID 0001 / Constraseña123
- */
 function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  
+
   const [employeeNumber, setEmployeeNumber] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleEmployeeNumberChange = (e) => {
     const value = e.target.value;
@@ -27,15 +24,18 @@ function Login() {
     setError('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    const result = login(employeeNumber, password);
+    setIsLoading(true);
+
+    const result = await login(employeeNumber, password);
     if (result.success) {
       navigate('/');
     } else {
       setError(result.error);
     }
+    setIsLoading(false);
   };
 
   return (
@@ -48,7 +48,7 @@ function Login() {
 
         <form className="login-form" onSubmit={handleSubmit}>
           <h2>Acceso a Calidad</h2>
-          
+
           <div className="form-group">
             <label htmlFor="employeeNumber">Número de Empleado</label>
             <input
@@ -57,6 +57,7 @@ function Login() {
               value={employeeNumber}
               onChange={handleEmployeeNumberChange}
               placeholder="Ingresa tu número de empleado"
+              disabled={isLoading}
             />
             <span className="field-hint">Solo valores numéricos</span>
           </div>
@@ -69,6 +70,7 @@ function Login() {
               value={password}
               onChange={handlePasswordChange}
               placeholder="Ingresa tu contraseña"
+              disabled={isLoading}
             />
           </div>
 
@@ -78,8 +80,8 @@ function Login() {
             </div>
           )}
 
-          <button type="submit" className="login-button">
-            Iniciar Sesión
+          <button type="submit" className="login-button" disabled={isLoading}>
+            {isLoading ? 'Ingresando...' : 'Iniciar Sesión'}
           </button>
         </form>
       </div>

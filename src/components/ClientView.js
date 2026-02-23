@@ -1,39 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { useRevisions } from '../context/RevisionsContext';
 import PieceDetailModal from './PieceDetailModal';
-
-/**
- * ClientView - Vista por Cliente
- */
-const clientData = {
-  amphenol: {
-    name: 'Amphenol',
-    description: 'Información del cliente Amphenol',
-    revisions: [
-      { id: 1, numeroPieza: 'AMP-001', plano: 'PLN-AMP-001', fabrica: 'Amphenol', numOperaciones: 4, operadores: 'Juan Pérez', fechaRevision: '2026-02-04', fechaSalida: '2026-02-05' },
-      { id: 2, numeroPieza: 'AMP-002', plano: 'PLN-AMP-002', fabrica: 'Amphenol', numOperaciones: 6, operadores: 'María García', fechaRevision: '2026-02-03', fechaSalida: '2026-02-04' },
-    ]
-  },
-  magnetics: {
-    name: 'Magnetics',
-    description: 'Información del cliente Magnetics',
-    revisions: [
-      { id: 1, numeroPieza: 'MAG-001', plano: 'PLN-MAG-001', fabrica: 'Magnetics', numOperaciones: 3, operadores: 'Carlos López', fechaRevision: '2026-02-02', fechaSalida: '2026-02-03' },
-    ]
-  },
-  ichor: {
-    name: 'Ichor',
-    description: 'Información del cliente Ichor',
-    revisions: [
-      { id: 1, numeroPieza: 'ICH-001', plano: 'PLN-ICH-001', fabrica: 'Ichor', numOperaciones: 5, operadores: 'Ana Martínez', fechaRevision: '2026-02-01', fechaSalida: '2026-02-02' },
-    ]
-  }
-};
 
 function ClientView() {
   const { clientId } = useParams();
+  const { fetchClientDetail } = useRevisions();
+  const [client, setClient] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [selectedPiece, setSelectedPiece] = useState(null);
-  const client = clientData[clientId];
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    fetchClientDetail(clientId).then((data) => {
+      if (!cancelled) {
+        setClient(data);
+        setLoading(false);
+      }
+    });
+    return () => { cancelled = true; };
+  }, [clientId, fetchClientDetail]);
+
+  if (loading) {
+    return <div className="client-view"><p>Cargando...</p></div>;
+  }
 
   if (!client) {
     return (
@@ -71,18 +62,26 @@ function ClientView() {
                 <th>Operadores</th>
                 <th>Fecha Revisado</th>
                 <th>Fecha Salida</th>
+                <th>Inspección</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
               {client.revisions.map((revision) => (
                 <tr key={revision.id}>
-                  <td>{revision.numeroPieza}</td>
+                  <td>{revision.numero_pieza}</td>
                   <td>{revision.plano}</td>
-                  <td>{revision.numOperaciones}</td>
+                  <td>{revision.num_operaciones}</td>
                   <td>{revision.operadores}</td>
-                  <td>{revision.fechaRevision}</td>
-                  <td>{revision.fechaSalida}</td>
+                  <td>{revision.fecha_revision}</td>
+                  <td>{revision.fecha_salida || 'Pendiente'}</td>
+                  <td>
+                    <span className={`inspection-badge ${revision.tiene_inspeccion ? (revision.estado_inspeccion === 'aprobada' ? 'badge-approved' : 'badge-rejected') : 'badge-pending'}`}>
+                      {revision.tiene_inspeccion
+                        ? (revision.estado_inspeccion === 'aprobada' ? 'Aprobada' : 'Rechazada')
+                        : 'Sin inspección'}
+                    </span>
+                  </td>
                   <td>
                     <button className="view-detail-button" onClick={() => setSelectedPiece(revision)}>
                       Ver Detalle
@@ -98,7 +97,15 @@ function ClientView() {
         </div>
       </section>
 
-      {selectedPiece && <PieceDetailModal piece={selectedPiece} onClose={() => setSelectedPiece(null)} />}
+      {selectedPiece && (
+        <PieceDetailModal
+          piece={selectedPiece}
+          onClose={() => setSelectedPiece(null)}
+          onInspectionSaved={() => {
+            fetchClientDetail(clientId).then(setClient);
+          }}
+        />
+      )}
     </div>
   );
 }

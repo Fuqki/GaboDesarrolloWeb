@@ -9,7 +9,11 @@ import Sidebar from './Sidebar';
  * Header + Sidebar + Contenido
  */
 function Layout() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return <div className="loading-screen"><p>Cargando...</p></div>;
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
