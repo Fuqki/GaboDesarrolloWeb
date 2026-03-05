@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useRevisions } from '../context/RevisionsContext';
+import Tooltip from './Tooltip';
 
 function Sidebar() {
   const { clients, fetchClients } = useRevisions();
@@ -19,23 +20,27 @@ function Sidebar() {
         <ul className="client-list">
           {clients.map((client) => (
             <li key={client.id} className="client-item">
-              <NavLink
-                to={`/cliente/${client.slug}`}
-                className={({ isActive }) =>
-                  isActive ? 'client-link active' : 'client-link'
-                }
-              >
-                {client.name}
-              </NavLink>
+              <Tooltip text={`Ver piezas y revisiones de ${client.name}`} position="right">
+                <NavLink
+                  to={`/cliente/${client.slug}`}
+                  className={({ isActive }) =>
+                    isActive ? 'client-link active' : 'client-link'
+                  }
+                >
+                  {client.name}
+                </NavLink>
+              </Tooltip>
             </li>
           ))}
         </ul>
       </nav>
 
       <div className="sidebar-footer">
-        <NavLink to="/" className="home-link">
-          Volver a Inicio
-        </NavLink>
+        <Tooltip text="Regresar al dashboard principal">
+          <NavLink to="/" className="home-link">
+            Volver a Inicio
+          </NavLink>
+        </Tooltip>
       </div>
     </aside>
   );

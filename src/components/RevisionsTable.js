@@ -1,8 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useRevisions } from '../context/RevisionsContext';
+import Tooltip from './Tooltip';
+import { getOperatorForOperation } from '../utils/operators';
 
 function RevisionsTable({ sortConfig, onPieceSelect }) {
   const { revisions, loadingRevisions } = useRevisions();
+  const [selectedOperationByRevision, setSelectedOperationByRevision] = useState({});
+
+  const getSelectedOperation = (revision) => {
+    const selected = selectedOperationByRevision[revision.id];
+    return selected || 1;
+  };
+
+  const handleOperationChange = (revisionId, operationNumber) => {
+    setSelectedOperationByRevision((prev) => ({
+      ...prev,
+      [revisionId]: Number(operationNumber),
+    }));
+  };
 
   const sortedRevisions = [...revisions].sort((a, b) => {
     const fieldMap = {
@@ -45,21 +60,48 @@ function RevisionsTable({ sortConfig, onPieceSelect }) {
               <td>{revision.numero_pieza}</td>
               <td>{revision.plano}</td>
               <td>{revision.fabrica}</td>
-              <td>{revision.num_operaciones}</td>
-              <td>{revision.operadores}</td>
+              <td>
+                <Tooltip text="Selecciona una operación para ver su operador">
+                  <select
+                    className="operation-selector"
+                    value={getSelectedOperation(revision)}
+                    onChange={(e) => handleOperationChange(revision.id, e.target.value)}
+                  >
+                    {Array.from({ length: revision.num_operaciones }, (_, index) => {
+                      const operationNumber = index + 1;
+                      return (
+                        <option key={operationNumber} value={operationNumber}>
+                          Op. {operationNumber}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </Tooltip>
+              </td>
+              <td>
+                {getOperatorForOperation(
+                  revision.operadores,
+                  revision.num_operaciones,
+                  getSelectedOperation(revision)
+                )}
+              </td>
               <td>{revision.fecha_revision}</td>
               <td>{revision.fecha_salida || 'Pendiente'}</td>
               <td>
-                <span className={`inspection-badge ${revision.tiene_inspeccion ? (revision.estado_inspeccion === 'aprobada' ? 'badge-approved' : 'badge-rejected') : 'badge-pending'}`}>
-                  {revision.tiene_inspeccion
-                    ? (revision.estado_inspeccion === 'aprobada' ? 'Aprobada' : 'Rechazada')
-                    : 'Sin inspección'}
-                </span>
+                <Tooltip text="Estado actual de la hoja de calidad">
+                  <span className={`inspection-badge ${revision.tiene_inspeccion ? (revision.estado_inspeccion === 'aprobada' ? 'badge-approved' : 'badge-rejected') : 'badge-pending'}`}>
+                    {revision.tiene_inspeccion
+                      ? (revision.estado_inspeccion === 'aprobada' ? 'Aprobada' : 'Rechazada')
+                      : 'Sin inspección'}
+                  </span>
+                </Tooltip>
               </td>
               <td>
-                <button className="view-detail-button" onClick={() => onPieceSelect(revision)}>
-                  Ver Detalle
-                </button>
+                <Tooltip text="Abrir información completa de la pieza">
+                  <button className="view-detail-button" onClick={() => onPieceSelect(revision)}>
+                    Ver Detalle
+                  </button>
+                </Tooltip>
               </td>
             </tr>
           ))}

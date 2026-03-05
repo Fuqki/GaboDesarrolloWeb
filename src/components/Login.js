@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Tooltip from './Tooltip';
 
 function Login() {
   const navigate = useNavigate();
@@ -51,27 +52,31 @@ function Login() {
 
           <div className="form-group">
             <label htmlFor="employeeNumber">Número de Empleado</label>
-            <input
-              type="text"
-              id="employeeNumber"
-              value={employeeNumber}
-              onChange={handleEmployeeNumberChange}
-              placeholder="Ingresa tu número de empleado"
-              disabled={isLoading}
-            />
+            <Tooltip text="Usa tu número de empleado de Calidad">
+              <input
+                type="text"
+                id="employeeNumber"
+                value={employeeNumber}
+                onChange={handleEmployeeNumberChange}
+                placeholder="Ingresa tu número de empleado"
+                disabled={isLoading}
+              />
+            </Tooltip>
             <span className="field-hint">Solo valores numéricos</span>
           </div>
 
           <div className="form-group">
             <label htmlFor="password">Contraseña</label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={handlePasswordChange}
-              placeholder="Ingresa tu contraseña"
-              disabled={isLoading}
-            />
+            <Tooltip text="Contraseña asignada para acceso al sistema">
+              <input
+                type="password"
+                id="password"
+                value={password}
+                onChange={handlePasswordChange}
+                placeholder="Ingresa tu contraseña"
+                disabled={isLoading}
+              />
+            </Tooltip>
           </div>
 
           {error && (
@@ -80,9 +85,11 @@ function Login() {
             </div>
           )}
 
-          <button type="submit" className="login-button" disabled={isLoading}>
-            {isLoading ? 'Ingresando...' : 'Iniciar Sesión'}
-          </button>
+          <Tooltip text="Inicia sesión y abre el panel principal">
+            <button type="submit" className="login-button" disabled={isLoading}>
+              {isLoading ? 'Ingresando...' : 'Iniciar Sesión'}
+            </button>
+          </Tooltip>
         </form>
       </div>
     </div>

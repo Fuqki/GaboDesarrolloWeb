@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Tooltip from './Tooltip';
 
 /**
  * UserProfile - Perfil del Empleado
@@ -15,18 +16,20 @@ function UserProfile({ user, onLogout }) {
 
   return (
     <div className="user-profile">
-      <button className="profile-button" onClick={toggleMenu}>
-        <div className="profile-photo">
-          {user?.photo ? (
-            <img src={user.photo} alt={`Foto de ${user.name}`} />
-          ) : (
-            <div className="profile-photo-placeholder">
-              {user?.name?.charAt(0) || 'U'}
-            </div>
-          )}
-        </div>
-        <span className="profile-name">{user?.name || 'Usuario'}</span>
-      </button>
+      <Tooltip text="Abrir menú de usuario">
+        <button className="profile-button" onClick={toggleMenu}>
+          <div className="profile-photo">
+            {user?.photo ? (
+              <img src={user.photo} alt={`Foto de ${user.name}`} />
+            ) : (
+              <div className="profile-photo-placeholder">
+                {user?.name?.charAt(0) || 'U'}
+              </div>
+            )}
+          </div>
+          <span className="profile-name">{user?.name || 'Usuario'}</span>
+        </button>
+      </Tooltip>
 
       {showMenu && (
         <div className="profile-menu">
@@ -35,9 +38,11 @@ function UserProfile({ user, onLogout }) {
             <p className="department">Departamento: {user?.department}</p>
           </div>
           <div className="profile-menu-actions">
-            <button className="logout-button" onClick={handleLogout}>
-              Cerrar Sesión
-            </button>
+            <Tooltip text="Cerrar sesión actual">
+              <button className="logout-button" onClick={handleLogout}>
+                Cerrar Sesión
+              </button>
+            </Tooltip>
           </div>
         </div>
       )}

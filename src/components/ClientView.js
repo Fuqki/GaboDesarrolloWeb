@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useRevisions } from '../context/RevisionsContext';
 import PieceDetailModal from './PieceDetailModal';
+import Tooltip from './Tooltip';
+import { getOperatorsSummary } from '../utils/operators';
 
 function ClientView() {
   const { clientId } = useParams();
@@ -72,20 +74,24 @@ function ClientView() {
                   <td>{revision.numero_pieza}</td>
                   <td>{revision.plano}</td>
                   <td>{revision.num_operaciones}</td>
-                  <td>{revision.operadores}</td>
+                  <td>{getOperatorsSummary(revision.operadores, revision.num_operaciones)}</td>
                   <td>{revision.fecha_revision}</td>
                   <td>{revision.fecha_salida || 'Pendiente'}</td>
                   <td>
-                    <span className={`inspection-badge ${revision.tiene_inspeccion ? (revision.estado_inspeccion === 'aprobada' ? 'badge-approved' : 'badge-rejected') : 'badge-pending'}`}>
-                      {revision.tiene_inspeccion
-                        ? (revision.estado_inspeccion === 'aprobada' ? 'Aprobada' : 'Rechazada')
-                        : 'Sin inspección'}
-                    </span>
+                    <Tooltip text="Estado de inspección de esta pieza">
+                      <span className={`inspection-badge ${revision.tiene_inspeccion ? (revision.estado_inspeccion === 'aprobada' ? 'badge-approved' : 'badge-rejected') : 'badge-pending'}`}>
+                        {revision.tiene_inspeccion
+                          ? (revision.estado_inspeccion === 'aprobada' ? 'Aprobada' : 'Rechazada')
+                          : 'Sin inspección'}
+                      </span>
+                    </Tooltip>
                   </td>
                   <td>
-                    <button className="view-detail-button" onClick={() => setSelectedPiece(revision)}>
-                      Ver Detalle
-                    </button>
+                    <Tooltip text="Ver detalle e inspección de la pieza">
+                      <button className="view-detail-button" onClick={() => setSelectedPiece(revision)}>
+                        Ver Detalle
+                      </button>
+                    </Tooltip>
                   </td>
                 </tr>
               ))}

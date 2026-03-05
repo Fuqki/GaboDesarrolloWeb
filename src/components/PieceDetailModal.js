@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useRevisions } from '../context/RevisionsContext';
 import QualityInspectionForm from './QualityInspectionForm';
+import Tooltip from './Tooltip';
+import { getOperatorsSummary } from '../utils/operators';
 
 const API_BASE = 'http://localhost:3001';
 
@@ -37,19 +39,27 @@ function PieceDetailModal({ piece, onClose, onInspectionSaved }) {
         <div className="modal-content piece-detail-modal">
           <div className="modal-header">
             <h2>Detalle de Pieza: {data.numero_pieza}</h2>
-            <button className="close-button" onClick={onClose}>✕</button>
+            <Tooltip text="Cerrar ventana de detalle">
+              <button className="close-button" onClick={onClose}>✕</button>
+            </Tooltip>
           </div>
 
           <div className="detail-tabs">
-            <button className={`tab-button ${activeTab === 'info' ? 'active' : ''}`} onClick={() => setActiveTab('info')}>
-              Información
-            </button>
-            <button className={`tab-button ${activeTab === 'plano' ? 'active' : ''}`} onClick={() => setActiveTab('plano')}>
-              Plano
-            </button>
-            <button className={`tab-button ${activeTab === 'inspeccion' ? 'active' : ''}`} onClick={() => setActiveTab('inspeccion')}>
-              Inspección de Calidad
-            </button>
+            <Tooltip text="Datos generales de la pieza">
+              <button className={`tab-button ${activeTab === 'info' ? 'active' : ''}`} onClick={() => setActiveTab('info')}>
+                Información
+              </button>
+            </Tooltip>
+            <Tooltip text="Visualizar archivo o identificador del plano">
+              <button className={`tab-button ${activeTab === 'plano' ? 'active' : ''}`} onClick={() => setActiveTab('plano')}>
+                Plano
+              </button>
+            </Tooltip>
+            <Tooltip text="Consultar o capturar hoja de inspección">
+              <button className={`tab-button ${activeTab === 'inspeccion' ? 'active' : ''}`} onClick={() => setActiveTab('inspeccion')}>
+                Inspección de Calidad
+              </button>
+            </Tooltip>
           </div>
 
           <div className="piece-detail-content">
@@ -83,7 +93,7 @@ function PieceDetailModal({ piece, onClose, onInspectionSaved }) {
                     </div>
                     <div className="detail-item">
                       <label>Operadores</label>
-                      <span>{data.operadores}</span>
+                      <span>{getOperatorsSummary(data.operadores, data.num_operaciones)}</span>
                     </div>
                   </div>
                 </section>
@@ -199,9 +209,11 @@ function PieceDetailModal({ piece, onClose, onInspectionSaved }) {
                 ) : (
                   <div className="no-inspection">
                     <p>Esta pieza aún no tiene hoja de inspección de calidad.</p>
-                    <button className="submit-button" onClick={() => setShowInspectionForm(true)}>
-                      Llenar Hoja de Inspección
-                    </button>
+                    <Tooltip text="Capturar mediciones y aprobar/rechazar operaciones">
+                      <button className="submit-button" onClick={() => setShowInspectionForm(true)}>
+                        Llenar Hoja de Inspección
+                      </button>
+                    </Tooltip>
                   </div>
                 )}
               </section>
@@ -209,7 +221,9 @@ function PieceDetailModal({ piece, onClose, onInspectionSaved }) {
           </div>
 
           <div className="modal-footer">
-            <button className="close-detail-button" onClick={onClose}>Cerrar</button>
+            <Tooltip text="Cerrar y volver a la tabla">
+              <button className="close-detail-button" onClick={onClose}>Cerrar</button>
+            </Tooltip>
           </div>
         </div>
       </div>

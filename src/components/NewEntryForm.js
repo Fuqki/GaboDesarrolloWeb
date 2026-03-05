@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRevisions } from '../context/RevisionsContext';
+import Tooltip from './Tooltip';
 
 function NewEntryForm({ onClose }) {
   const { addRevision, fetchClients, clients } = useRevisions();
@@ -13,6 +14,7 @@ function NewEntryForm({ onClose }) {
     fechaSalida: ''
   });
   const [planoArchivo, setPlanoArchivo] = useState(null);
+  const [operatorAssignments, setOperatorAssignments] = useState([]);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -23,8 +25,28 @@ function NewEntryForm({ onClose }) {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+
+    if (name === 'numOperaciones') {
+      const count = Math.max(Number(value) || 0, 0);
+      setOperatorAssignments((prev) =>
+        Array.from({ length: count }, (_, index) => prev[index] || '')
+      );
+    }
+
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const handleOperatorAssignmentChange = (index, value) => {
+    setOperatorAssignments((prev) => {
+      const next = [...prev];
+      next[index] = value;
+      return next;
+    });
+
+    if (errors.operadores) {
+      setErrors((prev) => ({ ...prev, operadores: '' }));
     }
   };
 
@@ -43,7 +65,9 @@ function NewEntryForm({ onClose }) {
     if (!formData.numOperaciones || parseInt(formData.numOperaciones) < 1) {
       newErrors.numOperaciones = 'Ingresa un número válido de operaciones';
     }
-    if (!formData.operadores.trim()) newErrors.operadores = 'Los operadores son requeridos';
+    if (operatorAssignments.length === 0 || operatorAssignments.some((name) => !name.trim())) {
+      newErrors.operadores = 'Debes asignar un operador por cada operación';
+    }
     if (!formData.fechaRevision) newErrors.fechaRevision = 'La fecha de revisión es requerida';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -60,7 +84,15 @@ function NewEntryForm({ onClose }) {
       data.append('plano', formData.plano);
       data.append('client_id', formData.client_id);
       data.append('num_operaciones', formData.numOperaciones);
-      data.append('operadores', formData.operadores);
+      data.append(
+        'operadores',
+        JSON.stringify(
+          operatorAssignments.map((operador, index) => ({
+            numOperacion: index + 1,
+            operador: operador.trim(),
+          }))
+        )
+      );
       data.append('fecha_revision', formData.fechaRevision);
       if (formData.fechaSalida) data.append('fecha_salida', formData.fechaSalida);
       if (planoArchivo) data.append('plano_archivo', planoArchivo);
@@ -79,7 +111,9 @@ function NewEntryForm({ onClose }) {
       <div className="modal-content new-entry-form">
         <div className="modal-header">
           <h2>Nueva Revisión de Pieza</h2>
-          <button className="close-button" onClick={onClose}>✕</button>
+          <Tooltip text="Cerrar formulario sin guardar">
+            <button className="close-button" onClick={onClose}>✕</button>
+          </Tooltip>
         </div>
 
         <form onSubmit={handleSubmit} className="entry-form">
@@ -97,7 +131,9 @@ function NewEntryForm({ onClose }) {
 
           <div className="form-group">
             <label htmlFor="planoArchivo">Archivo del Plano (PDF o Imagen)</label>
-            <input type="file" id="planoArchivo" accept=".pdf,image/*" onChange={handleFileChange} disabled={isSubmitting} />
+            <Tooltip text="Sube PDF o imagen del plano técnico">
+              <input type="file" id="planoArchivo" accept=".pdf,image/*" onChange={handleFileChange} disabled={isSubmitting} />
+            </Tooltip>
             {planoArchivo && <span className="field-hint">Archivo: {planoArchivo.name}</span>}
           </div>
 
@@ -117,8 +153,26 @@ function NewEntryForm({ onClose }) {
           </div>
 
           <div className="form-group">
-            <label htmlFor="operadores">Operadores *</label>
-            <input type="text" id="operadores" name="operadores" value={formData.operadores} onChange={handleChange} placeholder="Nombres separados por coma" disabled={isSubmitting} />
+            <label>Operadores por operación *</label>
+            {operatorAssignments.length > 0 ? (
+              <div className="operator-assignments-grid">
+                {operatorAssignments.map((operador, index) => (
+                  <div key={`op-${index + 1}`} className="operator-assignment-item">
+                    <label htmlFor={`operador-op-${index + 1}`}>Operación {index + 1}</label>
+                    <input
+                      type="text"
+                      id={`operador-op-${index + 1}`}
+                      value={operador}
+                      onChange={(e) => handleOperatorAssignmentChange(index, e.target.value)}
+                      placeholder={`Empleado operación ${index + 1}`}
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <span className="field-hint">Define primero el número de operaciones para asignar operadores.</span>
+            )}
             {errors.operadores && <span className="field-error">{errors.operadores}</span>}
           </div>
 
@@ -136,10 +190,14 @@ function NewEntryForm({ onClose }) {
           {errors.submit && <div className="form-error">{errors.submit}</div>}
 
           <div className="form-actions">
-            <button type="button" className="cancel-button" onClick={onClose} disabled={isSubmitting}>Cancelar</button>
-            <button type="submit" className="submit-button" disabled={isSubmitting}>
-              {isSubmitting ? 'Guardando...' : 'Guardar Revisión'}
-            </button>
+            <Tooltip text="Cancelar y volver al panel">
+              <button type="button" className="cancel-button" onClick={onClose} disabled={isSubmitting}>Cancelar</button>
+            </Tooltip>
+            <Tooltip text="Guardar revisión en la base de datos">
+              <button type="submit" className="submit-button" disabled={isSubmitting}>
+                {isSubmitting ? 'Guardando...' : 'Guardar Revisión'}
+              </button>
+            </Tooltip>
           </div>
         </form>
       </div>
