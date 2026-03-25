@@ -35,7 +35,9 @@ function UserProfile({ user, onLogout }) {
         <div className="profile-menu">
           <div className="profile-menu-header">
             <p className="employee-number">No. Empleado: {user?.employeeNumber}</p>
-            <p className="department">Departamento: {user?.department}</p>
+            <p className="department">
+              Rol: {user?.role === 'admin' ? 'Administrador' : 'Calidad'}
+            </p>
           </div>
           <div className="profile-menu-actions">
             <Tooltip text="Cerrar sesión actual">

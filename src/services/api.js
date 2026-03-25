@@ -1,5 +1,30 @@
 const API_BASE = 'http://localhost:3001/api';
 
+const AUTH_UNAUTHORIZED_EVENT = 'auth:unauthorized';
+
+export function notifySessionInvalid() {
+  localStorage.removeItem('auth_token');
+  window.dispatchEvent(new Event(AUTH_UNAUTHORIZED_EVENT));
+}
+
+/** Evita "Unexpected token '<'" cuando el servidor devuelve HTML (404 Express, proxy, etc.) */
+async function parseJsonResponse(res) {
+  const text = await res.text();
+  if (!text) return {};
+  const trimmed = text.trim();
+  if (trimmed.startsWith('<') || trimmed.startsWith('<!')) {
+    throw new Error(
+      'El servidor respondió con una página web en lugar de datos (JSON). ' +
+        'Reinicia el backend con `npm run start:server` o `npm run dev` y asegúrate de que use el código actual (ruta GET /api/access-help).'
+    );
+  }
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error('Respuesta del servidor no válida. Comprueba que la API esté en http://localhost:3001');
+  }
+}
+
 function getToken() {
   return localStorage.getItem('auth_token');
 }
@@ -23,9 +48,13 @@ async function request(endpoint, options = {}) {
   }
 
   const res = await fetch(`${API_BASE}${endpoint}`, config);
-  const data = await res.json();
+  const data = await parseJsonResponse(res);
 
   if (!res.ok) {
+    const sentAuth = Boolean(config.headers.Authorization);
+    if (res.status === 401 && sentAuth) {
+      notifySessionInvalid();
+    }
     throw new Error(data.error || 'Error en la petición');
   }
 
@@ -82,4 +111,41 @@ export async function createInspection(revisionId, inspectionData) {
     method: 'POST',
     body: inspectionData,
   });
+}
+
+export async function getUsersList() {
+  return request('/users');
+}
+
+export async function createUserAdmin(payload) {
+  return request('/users', { method: 'POST', body: payload });
+}
+
+export async function resetUserPassword(userId, new_password) {
+  return request(`/users/${userId}/password`, {
+    method: 'PATCH',
+    body: { new_password },
+  });
+}
+
+/** Sin token: pantalla de login */
+export async function requestAccessHelp(body) {
+  const res = await fetch(`${API_BASE}/access-help`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const data = await parseJsonResponse(res);
+  if (!res.ok) {
+    throw new Error(data.error || 'No se pudo enviar la solicitud');
+  }
+  return data;
+}
+
+export async function getAccessHelpRequests() {
+  return request('/access-help');
+}
+
+export async function resolveAccessHelpRequest(id) {
+  return request(`/access-help/${id}/resolve`, { method: 'PATCH' });
 }

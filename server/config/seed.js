@@ -15,7 +15,7 @@ function seed() {
   console.log('Insertando datos iniciales...');
 
   const insertUser = db.prepare(`
-    INSERT INTO users (employee_number, name, password_hash) VALUES (?, ?, ?)
+    INSERT INTO users (employee_number, name, password_hash, role) VALUES (?, ?, ?, ?)
   `);
 
   const insertClient = db.prepare(`
@@ -29,11 +29,13 @@ function seed() {
 
   const transaction = db.transaction(() => {
     const passwordHash = bcrypt.hashSync('Contrasena123', 10);
+    const adminHash = bcrypt.hashSync('AdminCalidad2026', 10);
 
-    insertUser.run('0001', 'Usuario de Calidad', passwordHash);
-    insertUser.run('0002', 'Inspector García', passwordHash);
-    insertUser.run('0003', 'Inspector López', passwordHash);
-    console.log('  - 3 usuarios creados (contraseña: Contrasena123)');
+    insertUser.run('9999', 'Administrador del Sistema', adminHash, 'admin');
+    insertUser.run('0001', 'Usuario de Calidad', passwordHash, 'calidad');
+    insertUser.run('0002', 'Inspector García', passwordHash, 'calidad');
+    insertUser.run('0003', 'Inspector López', passwordHash, 'calidad');
+    console.log('  - 4 usuarios: admin 9999 (AdminCalidad2026) + calidad 0001-0003 (Contrasena123)');
 
     insertClient.run('amphenol', 'Amphenol', 'Fabricante de conectores electrónicos y sensores industriales');
     insertClient.run('magnetics', 'Magnetics', 'Proveedor de componentes magnéticos y transformadores');

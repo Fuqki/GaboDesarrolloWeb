@@ -9,7 +9,7 @@ import UserProfile from './UserProfile';
  * Logo + Buscador + Perfil
  */
 function Header() {
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
 
   return (
     <header className="app-header">
@@ -21,6 +21,22 @@ function Header() {
 
       <div className="header-search">
         <SearchBar />
+      </div>
+
+      <div className="header-help">
+        {isAdmin && (
+          <>
+            <Link to="/admin/solicitudes-acceso" className="header-admin-link">
+              Solicitudes
+            </Link>
+            <Link to="/admin/usuarios" className="header-admin-link">
+              Usuarios
+            </Link>
+          </>
+        )}
+        <Link to="/ayuda" className="header-faq-link">
+          Ayuda
+        </Link>
       </div>
 
       <div className="header-profile">

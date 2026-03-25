@@ -1,9 +1,11 @@
 import React, { useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useRevisions } from '../context/RevisionsContext';
+import { useAuth } from '../context/AuthContext';
 import Tooltip from './Tooltip';
 
 function Sidebar() {
+  const { isAdmin } = useAuth();
   const { clients, fetchClients } = useRevisions();
 
   useEffect(() => {
@@ -36,6 +38,40 @@ function Sidebar() {
       </nav>
 
       <div className="sidebar-footer">
+        {isAdmin && (
+          <>
+            <Tooltip text="Gestionar usuarios del sistema">
+              <NavLink
+                to="/admin/usuarios"
+                className={({ isActive }) =>
+                  isActive ? 'admin-sidebar-link active' : 'admin-sidebar-link'
+                }
+              >
+                Usuarios
+              </NavLink>
+            </Tooltip>
+            <Tooltip text="Solicitudes de empleados que no pueden acceder">
+              <NavLink
+                to="/admin/solicitudes-acceso"
+                className={({ isActive }) =>
+                  isActive ? 'admin-sidebar-link active' : 'admin-sidebar-link'
+                }
+              >
+                Solicitudes de acceso
+              </NavLink>
+            </Tooltip>
+          </>
+        )}
+        <Tooltip text="Preguntas frecuentes y guía de uso">
+          <NavLink
+            to="/ayuda"
+            className={({ isActive }) =>
+              isActive ? 'faq-sidebar-link active' : 'faq-sidebar-link'
+            }
+          >
+            Ayuda / FAQ
+          </NavLink>
+        </Tooltip>
         <Tooltip text="Regresar al dashboard principal">
           <NavLink to="/" className="home-link">
             Volver a Inicio

@@ -6,7 +6,11 @@ import Login from './components/Login';
 import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
 import ClientView from './components/ClientView';
+import FAQ from './components/FAQ';
+import AdminUsers from './components/AdminUsers';
+import AdminAccessRequests from './components/AdminAccessRequests';
 import NotFound from './components/NotFound';
+import { GuestRoute, AdminRoute } from './components/RouteGuards';
 
 import { AuthProvider } from './context/AuthContext';
 import { RevisionsProvider } from './context/RevisionsContext';
@@ -27,11 +31,35 @@ function App() {
     <AuthProvider>
       <RevisionsProvider>
         <Routes>
-          <Route path="/login" element={<Login />} />
+          <Route
+            path="/login"
+            element={
+              <GuestRoute>
+                <Login />
+              </GuestRoute>
+            }
+          />
           <Route path="/" element={<Layout />}>
             <Route index element={<Dashboard />} />
             <Route path="cliente/:clientId" element={<ClientView />} />
             <Route path="pieza/:pieceId" element={<Dashboard />} />
+            <Route path="ayuda" element={<FAQ />} />
+            <Route
+              path="admin/usuarios"
+              element={
+                <AdminRoute>
+                  <AdminUsers />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="admin/solicitudes-acceso"
+              element={
+                <AdminRoute>
+                  <AdminAccessRequests />
+                </AdminRoute>
+              }
+            />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

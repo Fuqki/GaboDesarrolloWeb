@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Tooltip from './Tooltip';
+import RequestAccessModal from './RequestAccessModal';
 
 function Login() {
   const navigate = useNavigate();
@@ -11,6 +12,7 @@ function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showRequestAccess, setShowRequestAccess] = useState(false);
 
   const handleEmployeeNumberChange = (e) => {
     const value = e.target.value;
@@ -90,7 +92,28 @@ function Login() {
               {isLoading ? 'Ingresando...' : 'Iniciar Sesión'}
             </button>
           </Tooltip>
+
+          <div className="login-help-actions">
+            <button
+              type="button"
+              className="login-request-access-button"
+              onClick={() => setShowRequestAccess(true)}
+              disabled={isLoading}
+            >
+              ¿No puedes entrar? Notificar al administrador
+            </button>
+            <p className="login-help-hint">
+              Un administrador recibirá tu solicitud para restablecer tu contraseña o revisar tu cuenta.
+            </p>
+          </div>
         </form>
+
+        {showRequestAccess && (
+          <RequestAccessModal
+            initialEmployeeNumber={employeeNumber}
+            onClose={() => setShowRequestAccess(false)}
+          />
+        )}
       </div>
     </div>
   );

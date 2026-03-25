@@ -22,8 +22,10 @@ function login(req, res) {
     return res.status(401).json({ error: 'Credenciales inválidas' });
   }
 
+  const role = user.role || 'calidad';
+
   const token = jwt.sign(
-    { id: user.id, employee_number: user.employee_number, name: user.name },
+    { id: user.id, employee_number: user.employee_number, name: user.name, role },
     JWT_SECRET,
     { expiresIn: '8h' }
   );
@@ -34,20 +36,26 @@ function login(req, res) {
       id: user.id,
       employee_number: user.employee_number,
       name: user.name,
-      photo_url: user.photo_url
+      photo_url: user.photo_url,
+      role
     }
   });
 }
 
 function getProfile(req, res) {
   const db = getDatabase();
-  const user = db.prepare('SELECT id, employee_number, name, photo_url, created_at FROM users WHERE id = ?').get(req.user.id);
+  const user = db.prepare(
+    'SELECT id, employee_number, name, photo_url, role, created_at, updated_at FROM users WHERE id = ?'
+  ).get(req.user.id);
 
   if (!user) {
     return res.status(404).json({ error: 'Usuario no encontrado' });
   }
 
-  res.json(user);
+  res.json({
+    ...user,
+    role: user.role || 'calidad'
+  });
 }
 
 module.exports = { login, getProfile };

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Header from './Header';
@@ -9,7 +9,13 @@ import Sidebar from './Sidebar';
  * Header + Sidebar + Contenido
  */
 function Layout() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, refreshUser } = useAuth();
+
+  useEffect(() => {
+    if (isAuthenticated && !loading) {
+      refreshUser();
+    }
+  }, [isAuthenticated, loading, refreshUser]);
 
   if (loading) {
     return <div className="loading-screen"><p>Cargando...</p></div>;
