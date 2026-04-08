@@ -50,10 +50,15 @@ function getById(req, res) {
 }
 
 function create(req, res) {
-  const { numero_pieza, plano, client_id, num_operaciones, operadores, fecha_revision, fecha_salida } = req.body;
+  const { numero_pieza, plano, client_id, num_operaciones, piezas_totales, operadores, fecha_revision, fecha_salida } = req.body;
 
   if (!numero_pieza || !plano || !client_id || !num_operaciones || !fecha_revision) {
     return res.status(400).json({ error: 'Campos obligatorios: numero_pieza, plano, client_id, num_operaciones, fecha_revision' });
+  }
+
+  const piezasTotalesNum = parseInt(piezas_totales, 10);
+  if (Number.isNaN(piezasTotalesNum) || piezasTotalesNum < 1) {
+    return res.status(400).json({ error: 'piezas_totales debe ser un entero mayor o igual a 1' });
   }
 
   const db = getDatabase();
@@ -68,12 +73,12 @@ function create(req, res) {
 
   try {
     const stmt = db.prepare(`
-      INSERT INTO revisions (numero_pieza, plano, client_id, num_operaciones, operadores, fecha_revision, fecha_salida, plano_archivo_path, plano_nombre_archivo, created_by)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO revisions (numero_pieza, plano, client_id, num_operaciones, piezas_totales, operadores, fecha_revision, fecha_salida, plano_archivo_path, plano_nombre_archivo, created_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     const result = stmt.run(
-      numero_pieza, plano, client_id, num_operaciones,
+      numero_pieza, plano, client_id, num_operaciones, piezasTotalesNum,
       operadores || null, fecha_revision, fecha_salida || null,
       plano_archivo_path, plano_nombre_archivo, req.user.id
     );

@@ -92,6 +92,10 @@ function PieceDetailModal({ piece, onClose, onInspectionSaved }) {
                       <span>{data.num_operaciones}</span>
                     </div>
                     <div className="detail-item">
+                      <label>Cantidad de piezas totales</label>
+                      <span>{data.piezas_totales ?? 1}</span>
+                    </div>
+                    <div className="detail-item">
                       <label>Operadores</label>
                       <span>{getOperatorsSummary(data.operadores, data.num_operaciones)}</span>
                     </div>

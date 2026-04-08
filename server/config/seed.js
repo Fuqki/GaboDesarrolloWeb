@@ -23,8 +23,8 @@ function seed() {
   `);
 
   const insertRevision = db.prepare(`
-    INSERT INTO revisions (numero_pieza, plano, client_id, num_operaciones, operadores, fecha_revision, fecha_salida, created_by)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO revisions (numero_pieza, plano, client_id, num_operaciones, piezas_totales, operadores, fecha_revision, fecha_salida, created_by)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const transaction = db.transaction(() => {
@@ -47,13 +47,14 @@ function seed() {
     const ichorId = db.prepare("SELECT id FROM clients WHERE slug = 'ichor'").get().id;
     const userId = db.prepare("SELECT id FROM users WHERE employee_number = '0001'").get().id;
 
-    insertRevision.run('PZ-001234', 'PLN-2024-001', amphenolId, 5, 'Juan Pérez, María García', '2026-02-04', '2026-02-05', userId);
-    insertRevision.run('PZ-001235', 'PLN-2024-002', magneticsId, 3, 'Carlos López', '2026-02-06', null, userId);
-    insertRevision.run('PZ-001236', 'PLN-2024-003', ichorId, 4, 'Ana Martínez, Roberto Sánchez', '2026-02-08', '2026-02-10', userId);
-    insertRevision.run('AMP-001', 'PLN-AMP-001', amphenolId, 6, 'Juan Pérez', '2026-01-15', '2026-01-20', userId);
-    insertRevision.run('AMP-002', 'PLN-AMP-002', amphenolId, 4, 'María García', '2026-02-01', null, userId);
-    insertRevision.run('MAG-001', 'PLN-MAG-001', magneticsId, 3, 'Carlos López, Ana Martínez', '2026-01-28', '2026-02-02', userId);
-    insertRevision.run('ICH-001', 'PLN-ICH-001', ichorId, 5, 'Roberto Sánchez', '2026-02-10', null, userId);
+    // piezas_totales: lotes tipo taller (muestras, series cortas, pedidos medios / alto volumen)
+    insertRevision.run('PZ-001234', 'PLN-2024-001', amphenolId, 5, 84, 'Juan Pérez, María García', '2026-02-04', '2026-02-05', userId);
+    insertRevision.run('PZ-001235', 'PLN-2024-002', magneticsId, 3, 18, 'Carlos López', '2026-02-06', null, userId);
+    insertRevision.run('PZ-001236', 'PLN-2024-003', ichorId, 4, 256, 'Ana Martínez, Roberto Sánchez', '2026-02-08', '2026-02-10', userId);
+    insertRevision.run('AMP-001', 'PLN-AMP-001', amphenolId, 6, 520, 'Juan Pérez', '2026-01-15', '2026-01-20', userId);
+    insertRevision.run('AMP-002', 'PLN-AMP-002', amphenolId, 4, 42, 'María García', '2026-02-01', null, userId);
+    insertRevision.run('MAG-001', 'PLN-MAG-001', magneticsId, 3, 132, 'Carlos López, Ana Martínez', '2026-01-28', '2026-02-02', userId);
+    insertRevision.run('ICH-001', 'PLN-ICH-001', ichorId, 5, 384, 'Roberto Sánchez', '2026-02-10', null, userId);
     console.log('  - 7 revisiones creadas');
   });
 

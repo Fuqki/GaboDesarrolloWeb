@@ -25,10 +25,16 @@ function RevisionsTable({ sortConfig, onPieceSelect }) {
       fechaSalida: 'fecha_salida',
       numeroPieza: 'numero_pieza',
       fabrica: 'fabrica',
+      piezasTotales: 'piezas_totales',
     };
     const field = fieldMap[sortConfig.field] || sortConfig.field;
-    const aValue = a[field] || '';
-    const bValue = b[field] || '';
+    const aRaw = a[field];
+    const bRaw = b[field];
+    const aValue = field === 'piezas_totales' ? Number(aRaw) || 0 : (aRaw ?? '');
+    const bValue = field === 'piezas_totales' ? Number(bRaw) || 0 : (bRaw ?? '');
+    if (field === 'piezas_totales') {
+      return sortConfig.direction === 'asc' ? aValue - bValue : bValue - aValue;
+    }
     return sortConfig.direction === 'asc'
       ? (aValue > bValue ? 1 : -1)
       : (aValue < bValue ? 1 : -1);
@@ -47,6 +53,7 @@ function RevisionsTable({ sortConfig, onPieceSelect }) {
             <th>Plano</th>
             <th>Fábrica</th>
             <th>No. Operaciones</th>
+            <th>Piezas totales</th>
             <th>Operadores</th>
             <th>Fecha Revisado</th>
             <th>Fecha Salida</th>
@@ -78,6 +85,7 @@ function RevisionsTable({ sortConfig, onPieceSelect }) {
                   </select>
                 </Tooltip>
               </td>
+              <td>{revision.piezas_totales ?? 1}</td>
               <td>
                 {getOperatorForOperation(
                   revision.operadores,

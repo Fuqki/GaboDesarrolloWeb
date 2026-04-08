@@ -50,6 +50,7 @@ function Dashboard() {
               <option value="fechaSalida">Fecha de Salida</option>
               <option value="numeroPieza">Número de Pieza</option>
               <option value="fabrica">Fábrica</option>
+              <option value="piezasTotales">Piezas totales</option>
             </select>
           </Tooltip>
           <Tooltip text="Cambia entre orden ascendente y descendente">

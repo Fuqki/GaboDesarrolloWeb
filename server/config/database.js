@@ -24,6 +24,14 @@ function migrateUsersRole() {
   }
 }
 
+function migrateRevisionsPiezasTotales() {
+  const columns = db.prepare('PRAGMA table_info(revisions)').all();
+  const has = columns.some((c) => c.name === 'piezas_totales');
+  if (!has) {
+    db.exec('ALTER TABLE revisions ADD COLUMN piezas_totales INTEGER NOT NULL DEFAULT 1');
+  }
+}
+
 /**
  * Garantiza al menos un administrador.
  * Si el empleado 9999 ya existía cuando se añadió la columna `role`, quedó en "calidad"
@@ -85,6 +93,7 @@ function initializeTables() {
       plano VARCHAR(50) NOT NULL,
       client_id INTEGER NOT NULL,
       num_operaciones INTEGER NOT NULL CHECK(num_operaciones > 0),
+      piezas_totales INTEGER NOT NULL DEFAULT 1 CHECK(piezas_totales > 0),
       operadores VARCHAR(255),
       fecha_revision DATE NOT NULL,
       fecha_salida DATE,
@@ -144,6 +153,7 @@ function initializeTables() {
   `);
 
   migrateUsersRole();
+  migrateRevisionsPiezasTotales();
   ensureAdminUser();
 }
 

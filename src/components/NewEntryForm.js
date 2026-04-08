@@ -9,6 +9,7 @@ function NewEntryForm({ onClose }) {
     plano: '',
     client_id: '',
     numOperaciones: '',
+    piezasTotales: '1',
     operadores: '',
     fechaRevision: '',
     fechaSalida: ''
@@ -62,8 +63,12 @@ function NewEntryForm({ onClose }) {
     if (!formData.numeroPieza.trim()) newErrors.numeroPieza = 'El número de pieza es requerido';
     if (!formData.plano.trim()) newErrors.plano = 'El plano es requerido';
     if (!formData.client_id) newErrors.client_id = 'Selecciona una fábrica';
-    if (!formData.numOperaciones || parseInt(formData.numOperaciones) < 1) {
+    if (!formData.numOperaciones || parseInt(formData.numOperaciones, 10) < 1) {
       newErrors.numOperaciones = 'Ingresa un número válido de operaciones';
+    }
+    const piezas = parseInt(formData.piezasTotales, 10);
+    if (Number.isNaN(piezas) || piezas < 1) {
+      newErrors.piezasTotales = 'Ingresa la cantidad de piezas (entero ≥ 1)';
     }
     if (operatorAssignments.length === 0 || operatorAssignments.some((name) => !name.trim())) {
       newErrors.operadores = 'Debes asignar un operador por cada operación';
@@ -84,6 +89,7 @@ function NewEntryForm({ onClose }) {
       data.append('plano', formData.plano);
       data.append('client_id', formData.client_id);
       data.append('num_operaciones', formData.numOperaciones);
+      data.append('piezas_totales', String(parseInt(formData.piezasTotales, 10)));
       data.append(
         'operadores',
         JSON.stringify(
@@ -150,6 +156,14 @@ function NewEntryForm({ onClose }) {
             <label htmlFor="numOperaciones">Número de Operaciones *</label>
             <input type="number" id="numOperaciones" name="numOperaciones" value={formData.numOperaciones} onChange={handleChange} min="1" placeholder="Ej: 5" disabled={isSubmitting} />
             {errors.numOperaciones && <span className="field-error">{errors.numOperaciones}</span>}
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="piezasTotales">Cantidad de piezas totales *</label>
+            <Tooltip text="Unidades físicas incluidas en este lote o orden de revisión">
+              <input type="number" id="piezasTotales" name="piezasTotales" value={formData.piezasTotales} onChange={handleChange} min="1" placeholder="Ej: 100" disabled={isSubmitting} />
+            </Tooltip>
+            {errors.piezasTotales && <span className="field-error">{errors.piezasTotales}</span>}
           </div>
 
           <div className="form-group">

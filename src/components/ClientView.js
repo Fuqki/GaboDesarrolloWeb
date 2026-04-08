@@ -37,6 +37,11 @@ function ClientView() {
     );
   }
 
+  const piezasSum = client.revisions.reduce(
+    (acc, r) => acc + (Number(r.piezas_totales) > 0 ? Number(r.piezas_totales) : 1),
+    0
+  );
+
   return (
     <div className="client-view">
       <div className="client-header">
@@ -48,7 +53,8 @@ function ClientView() {
         <h2>Información del Cliente</h2>
         <div className="client-info-details">
           <div className="info-item"><label>Nombre:</label><span>{client.name}</span></div>
-          <div className="info-item"><label>Total de Piezas:</label><span>{client.revisions.length}</span></div>
+          <div className="info-item"><label>Revisiones registradas:</label><span>{client.revisions.length}</span></div>
+          <div className="info-item"><label>Cantidad total de piezas:</label><span>{piezasSum}</span></div>
         </div>
       </section>
 
@@ -61,6 +67,7 @@ function ClientView() {
                 <th>Número de Pieza</th>
                 <th>Plano</th>
                 <th>No. Operaciones</th>
+                <th>Piezas totales</th>
                 <th>Operadores</th>
                 <th>Fecha Revisado</th>
                 <th>Fecha Salida</th>
@@ -74,6 +81,7 @@ function ClientView() {
                   <td>{revision.numero_pieza}</td>
                   <td>{revision.plano}</td>
                   <td>{revision.num_operaciones}</td>
+                  <td>{revision.piezas_totales ?? 1}</td>
                   <td>{getOperatorsSummary(revision.operadores, revision.num_operaciones)}</td>
                   <td>{revision.fecha_revision}</td>
                   <td>{revision.fecha_salida || 'Pendiente'}</td>
