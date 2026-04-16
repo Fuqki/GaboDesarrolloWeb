@@ -1,0 +1,34 @@
+Instalación desde cero
+Clona/copiar el proyecto en una carpeta.
+----------------------------------------------
+Instala Node.js (recomendado LTS 18 o 20) y verifica:
+node -v
+npm -v
+----------------------------------------------
+Instala dependencias del frontend (raíz):
+npm install
+----------------------------------------------
+Instala dependencias del backend (server):
+cd server
+npm install
+----------------------------------------------
+Cargar datos de ejemplo (seed)
+Desde la carpeta server, ejecuta:
+npm run seed
+Esto crea/usa server/database.db, genera tablas y mete datos demo.
+----------------------------------------------
+Si ya hay datos, el seed se omite automáticamente.
+Para forzar seed limpio, borra server/database.db y vuelve a correr:
+npm run seed
+----------------------------------------------
+Levantar el proyecto
+Vuelve a la raíz y arranca frontend + backend juntos:
+
+cd ..
+npm run dev
+----------------------------------------------
+Frontend: http://localhost:3000
+Backend: http://localhost:3001
+Usuarios de ejemplo creados por seed
+Admin: 9999 / AdminCalidad2026
+Calidad: 0001, 0002, 0003 / Contrasena123
