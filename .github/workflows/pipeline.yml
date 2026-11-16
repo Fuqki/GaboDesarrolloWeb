@@ -1,0 +1,43 @@
+name: CI y liberacion
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+permissions:
+  contents: read
+# Serializa el ciclo completo, incluyendo aprobación, para no pisar staging.
+concurrency:
+  group: rbs-release-${{ github.event_name == 'pull_request' && github.ref || 'delivery' }}
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Validar sintaxis shell
+        run: for script in scripts/*.sh; do bash -n "$script"; done
+      - name: Construir y probar liberacion
+        run: bash scripts/build-release.sh "$GITHUB_SHA"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: release-${{ github.sha }}
+          path: dist/release.tar.gz
+          if-no-files-found: error
+          retention-days: 30
+  staging:
+    needs: release
+    if: github.event_name != 'pull_request' && vars.ENABLE_DEPLOYMENT == 'true' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: staging
+    secrets: inherit
+  production:
+    needs: staging
+    if: github.ref == 'refs/heads/main' && vars.ENABLE_DEPLOYMENT == 'true'
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: production
+    secrets: inherit

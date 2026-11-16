@@ -15,7 +15,8 @@
     "dev": "concurrently -n frontend,backend -c cyan,green \"npm start\" \"npm run start:server\"",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "test:release": "node --test server/tests/release.test.js"
   },
   "browserslist": {
     "production": [
@@ -31,5 +32,6 @@
   },
   "devDependencies": {
     "concurrently": "^9.2.1"
-  }
+  },
+  "proxy": "http://localhost:3001"
 }

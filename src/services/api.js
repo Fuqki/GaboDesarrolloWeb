@@ -1,4 +1,12 @@
-const API_BASE = 'http://localhost:3001/api';
+const API_BASE = process.env.REACT_APP_API_URL || '/api';
+
+export async function getBlueprintBlob(filePath) {
+  const base = API_BASE.replace(/\/api\/?$/, '');
+  const response = await fetch(`${base}/uploads/${filePath}`, { headers: authHeaders() });
+  if (response.status === 401) notifySessionInvalid();
+  if (!response.ok) throw new Error('No se pudo cargar el plano');
+  return response.blob();
+}
 
 const AUTH_UNAUTHORIZED_EVENT = 'auth:unauthorized';
 

@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "seed": "node config/seed.js"
+    "seed": "node config/seed.js",
+    "test": "node --test tests/release.test.js",
+    "create-admin": "node scripts/create-admin.js"
   },
   "dependencies": {
     "better-sqlite3": "^12.8.0",

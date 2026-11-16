@@ -2,12 +2,14 @@ const Database = require('better-sqlite3');
 const bcrypt = require('bcryptjs');
 const path = require('path');
 
-const DB_PATH = path.join(__dirname, '..', 'database.db');
+const fs = require('fs');
+const { databasePath: DB_PATH } = require('./runtime');
 
 let db;
 
 function getDatabase() {
   if (!db) {
+    fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
     db = new Database(DB_PATH);
     db.pragma('journal_mode = WAL');
     db.pragma('foreign_keys = ON');
@@ -38,6 +40,8 @@ function migrateRevisionsPiezasTotales() {
  * y el INSERT falla por UNIQUE: hay que promoverlo a admin.
  */
 function ensureAdminUser() {
+  // Producción se aprovisiona explícitamente; nunca crear credenciales conocidas.
+  if (process.env.NODE_ENV === 'production') return;
   const total = db.prepare('SELECT COUNT(*) AS c FROM users').get().c;
   if (total === 0) return;
 

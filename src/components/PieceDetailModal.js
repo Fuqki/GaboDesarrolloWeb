@@ -4,7 +4,7 @@ import QualityInspectionForm from './QualityInspectionForm';
 import Tooltip from './Tooltip';
 import { getOperatorsSummary } from '../utils/operators';
 
-const API_BASE = 'http://localhost:3001';
+import { getBlueprintBlob } from '../services/api';
 
 function PieceDetailModal({ piece, onClose, onInspectionSaved }) {
   const { fetchRevisionDetail } = useRevisions();
@@ -32,6 +32,20 @@ function PieceDetailModal({ piece, onClose, onInspectionSaved }) {
   };
 
   const data = detail || piece;
+  const [blueprintUrl, setBlueprintUrl] = useState('');
+  const [blueprintError, setBlueprintError] = useState('');
+  useEffect(() => {
+    let cancelled = false;
+    let url;
+    setBlueprintUrl('');
+    setBlueprintError('');
+    if (activeTab === 'plano' && data.plano_archivo_path) {
+      getBlueprintBlob(data.plano_archivo_path).then(blob => {
+        if (!cancelled) { url = URL.createObjectURL(blob); setBlueprintUrl(url); }
+      }).catch(err => { if (!cancelled) setBlueprintError(err.message); });
+    }
+    return () => { cancelled = true; if (url) URL.revokeObjectURL(url); };
+  }, [activeTab, data.plano_archivo_path]);
 
   return (
     <>
@@ -122,10 +136,11 @@ function PieceDetailModal({ piece, onClose, onInspectionSaved }) {
                 <h3>Archivo del Plano</h3>
                 {data.plano_archivo_path ? (
                   <div className="plano-viewer">
+                    {blueprintError && <p role="alert">{blueprintError}</p>}
                     {data.plano_nombre_archivo?.match(/\.pdf$/i) ? (
                       <div className="plano-pdf">
                         <a
-                          href={`${API_BASE}/uploads/${data.plano_archivo_path}`}
+                          href={blueprintUrl || undefined}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="view-pdf-button"
@@ -135,7 +150,7 @@ function PieceDetailModal({ piece, onClose, onInspectionSaved }) {
                       </div>
                     ) : (
                       <img
-                        src={`${API_BASE}/uploads/${data.plano_archivo_path}`}
+                        src={blueprintUrl || undefined}
                         alt={`Plano ${data.plano}`}
                         className="plano-image"
                       />
