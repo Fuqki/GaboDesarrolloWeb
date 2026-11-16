@@ -1,0 +1,46 @@
+name: Despliegue del artefacto validado
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: release-${{ github.sha }}
+      - name: Transferir y desplegar
+        shell: bash
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          ENVIRONMENT: ${{ inputs.environment }}
+          PUBLIC_URL: ${{ vars.PUBLIC_URL }}
+        run: |
+          set -Eeuo pipefail
+          [[ "$DEPLOY_HOST" =~ ^[a-zA-Z0-9][a-zA-Z0-9.-]*$ ]]
+          [[ "$DEPLOY_USER" =~ ^[a-z_][a-z0-9_-]*$ ]]
+          [[ "$ENVIRONMENT" =~ ^(staging|production)$ ]]
+          [[ "$PUBLIC_URL" =~ ^https://[a-zA-Z0-9.-]+(:[0-9]+)?$ ]]
+          [[ -n "$DEPLOY_SSH_KEY" && -n "$DEPLOY_KNOWN_HOSTS" ]]
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/id_ed25519 ~/.ssh/known_hosts
+          trap 'rm -f ~/.ssh/id_ed25519' EXIT
+          remote="rbs-incoming/$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT-$ENVIRONMENT"
+          target="$DEPLOY_USER@$DEPLOY_HOST"
+          ssh -o BatchMode=yes -o StrictHostKeyChecking=yes "$target" "mkdir -p '$remote'"
+          scp -o BatchMode=yes -o StrictHostKeyChecking=yes release.tar.gz "$target:$remote/release.tar.gz"
+          ssh -o BatchMode=yes -o StrictHostKeyChecking=yes "$target" "cd '$remote' && tar -xzf release.tar.gz && bash scripts/deploy.sh '/opt/rbs/$ENVIRONMENT'"
+          tar -xzf release.tar.gz scripts/smoke.mjs
+          node scripts/smoke.mjs "$PUBLIC_URL"

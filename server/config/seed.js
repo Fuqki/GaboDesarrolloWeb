@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const { getDatabase, closeDatabase } = require('./database');
 
 function seed() {
+  if (process.env.NODE_ENV === 'production') throw new Error('Seed de demostración prohibido en producción');
   const db = getDatabase();
 
   const existingUser = db.prepare('SELECT id FROM users LIMIT 1').get();

@@ -1,0 +1,12 @@
+node_modules/
+build/
+dist/
+coverage/
+.env
+.env.*
+!.env.example
+server/*.db*
+server/uploads/blueprints/*
+!server/uploads/blueprints/.gitkeep
+.release/
+test-results/

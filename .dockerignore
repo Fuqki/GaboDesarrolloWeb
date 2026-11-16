@@ -1,0 +1,11 @@
+**/node_modules
+build
+dist
+.git
+Docs
+**/*.db*
+**/.env*
+server/uploads
+.release
+coverage
+test-results
